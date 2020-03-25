@@ -357,7 +357,7 @@ class OneNotePtr {
         next.cb = nextChunkRef.cb;
         next.stp = nextChunkRef.stp;
         if (terminated) {
-            LOG.debug("{}Chunk terminator found NextChunkRef.cb={}, NextChunkRef.stp={}, Offset={}, End={}", getIndent(), nextChunkRef.cb
+            LOG.info("{}Chunk terminator found NextChunkRef.cb={}, NextChunkRef.stp={}, Offset={}, End={}", getIndent(), nextChunkRef.cb
                 , nextChunkRef.stp, offset, end);
             // TODO check that next is OK
         }
@@ -378,7 +378,7 @@ class OneNotePtr {
         if (data.id == 0) {
             return data;
         }
-        LOG.debug("{}Start Node {} ({}) - Offset={}, End={}", getIndent(), FndStructureConstants.nameOf(data.id), data.id, offset, end);
+        LOG.info("{}Start Node {} ({}) - Offset={}, End={}", getIndent(), FndStructureConstants.nameOf(data.id), data.id, offset, end);
 
         ++indentLevel;
 
@@ -415,11 +415,11 @@ class OneNotePtr {
             // MUST match the ObjectSpaceManifestListReferenceFND.gosid field of the FileNode structure that referenced
             // this file node list.
             data.gosid = deserializeExtendedGUID();
-            //LOG.debug("{}gosid {}", getIndent(), data.gosid.toString().c_str());
+            //LOG.info("{}gosid {}", getIndent(), data.gosid.toString().c_str());
         } else if (data.id == FndStructureConstants.ObjectSpaceManifestListReferenceFND) {
             data.gosid = deserializeExtendedGUID();
             data.idDesc = "gosid";
-            //LOG.debug("{}gosid {}", getIndent(),data.gosid.toString().c_str());
+            //LOG.info("{}gosid {}", getIndent(),data.gosid.toString().c_str());
             //children parsed in generic base_type 2 parser
         } else if (data.id == FndStructureConstants.RevisionManifestListStartFND) {
             data.gosid = deserializeExtendedGUID();
@@ -428,14 +428,14 @@ class OneNotePtr {
             parentPath.nodeListPositions.remove(parentPath.nodeListPositions.size() - 1);
             document.registerRevisionManifestList(data.gosid, parentPath);
 
-            //LOG.debug("{}gosid {}", getIndent(),data.gosid.toString().c_str());
+            //LOG.info("{}gosid {}", getIndent(),data.gosid.toString().c_str());
             data.subType.revisionManifestListStart.nInstanceIgnored = deserializeLittleEndianInt();
         } else if (data.id == FndStructureConstants.RevisionManifestStart4FND) {
             data.gosid = deserializeExtendedGUID(); // the rid
             data.idDesc = "rid";
-            //LOG.debug("{}gosid {}", getIndent(), data.gosid.toString().c_str());
+            //LOG.info("{}gosid {}", getIndent(), data.gosid.toString().c_str());
             data.subType.revisionManifest.ridDependent = deserializeExtendedGUID(); // the rid
-            LOG.debug("{}dependent gosid {}", getIndent(), data.subType.revisionManifest.ridDependent);
+            LOG.info("{}dependent gosid {}", getIndent(), data.subType.revisionManifest.ridDependent);
             data.subType.revisionManifest.timeCreation = deserializeLittleEndianLong();
             data.subType.revisionManifest.revisionRole = deserializeLittleEndianInt();
             data.subType.revisionManifest.odcsDefault = deserializeLittleEndianShort();
@@ -446,9 +446,9 @@ class OneNotePtr {
             || data.id == FndStructureConstants.RevisionManifestStart7FND) {
             data.gosid = deserializeExtendedGUID(); // the rid
             data.idDesc = "rid";
-            //LOG.debug("{}gosid {}", getIndent(), data.gosid.toString().c_str());
+            //LOG.info("{}gosid {}", getIndent(), data.gosid.toString().c_str());
             data.subType.revisionManifest.ridDependent = deserializeExtendedGUID(); // the rid
-            LOG.debug("{}dependent gosid {}", getIndent(), data.subType.revisionManifest.ridDependent);
+            LOG.info("{}dependent gosid {}", getIndent(), data.subType.revisionManifest.ridDependent);
             data.subType.revisionManifest.revisionRole = deserializeLittleEndianInt();
             data.subType.revisionManifest.odcsDefault = deserializeLittleEndianShort();
 
@@ -524,7 +524,7 @@ class OneNotePtr {
             data.gosid = data.subType.rootObjectReference.oidRoot.guid;
             data.subType.rootObjectReference.rootObjectReferenceBase.rootRole = deserializeLittleEndianInt();
 
-            LOG.debug("{}Root role {}", getIndent(),
+            LOG.info("{}Root role {}", getIndent(),
                 data.subType.rootObjectReference.rootObjectReferenceBase.rootRole);
         } else if (data.id == FndStructureConstants.RootObjectReference3FND) {
             data.idDesc = "oidRoot";
@@ -532,7 +532,7 @@ class OneNotePtr {
 
             data.subType.rootObjectReference.rootObjectReferenceBase.rootRole = deserializeLittleEndianInt();
 
-            LOG.debug("{}Root role {}", getIndent(),
+            LOG.info("{}Root role {}", getIndent(),
                 data.subType.rootObjectReference.rootObjectReferenceBase.rootRole);
         } else if (data.id == FndStructureConstants.RevisionRoleDeclarationFND
             || data.id == FndStructureConstants.RevisionRoleAndContextDeclarationFND) {
@@ -599,7 +599,7 @@ class OneNotePtr {
             data.idDesc = "oid";
             postprocessObjectDeclarationContents(data, curPath);
 
-            LOG.debug("{}Ref Count JCID {}", getIndent(),
+            LOG.info("{}Ref Count JCID {}", getIndent(),
                 data.subType.objectDeclarationWithRefCount.body.jcid);
         } else if (data.id == FndStructureConstants.CanRevise.ObjectDeclarationFileData3RefCountFND
             || data.id == FndStructureConstants.CanRevise.ObjectDeclarationFileData3LargeRefCountFND) {
@@ -637,12 +637,12 @@ class OneNotePtr {
                 ExtendedGUID extendedGUID = new ExtendedGUID(guid, 0);
                 FileChunkReference fileChunk = document.getAssocGuidToRef(extendedGUID);
                 if (fileChunk == null) {
-                    LOG.debug("{} have not seen GUID {} yet", getIndent(), extendedGUID);
+                    LOG.info("{} have not seen GUID {} yet", getIndent(), extendedGUID);
                 } else {
                     // TODO - call postprocessObjectDeclarationContents on this object?
                 }
             } else {
-                LOG.debug("{}Ignoring an external reference {}", getIndent(), new String(dataSpaceBufferBytes, StandardCharsets.UTF_16LE));
+                LOG.info("{}Ignoring an external reference {}", getIndent(), new String(dataSpaceBufferBytes, StandardCharsets.UTF_16LE));
             }
         } else if (data.id == FndStructureConstants.ObjectGroupListReferenceFND) {
             data.idDesc = "object_group_id";
@@ -664,7 +664,7 @@ class OneNotePtr {
             Revision currentRevision = document.revisionMap.get(document.currentRevision);
             currentRevision.manifestList.add(curPath);
         } else {
-            LOG.debug("No fnd needed to be parsed for data.id=0x" + Long.toHexString(data.id) + " (" + FndStructureConstants.nameOf(data.id) + ")");
+            LOG.info("No fnd needed to be parsed for data.id=0x" + Long.toHexString(data.id) + " (" + FndStructureConstants.nameOf(data.id) + ")");
         }
         if (data.baseType == 2) {
             // Generic baseType == 2 parser - means we have children to parse.
@@ -687,17 +687,17 @@ class OneNotePtr {
             OneNotePtr content = new OneNotePtr(this);
             content.reposition(data.ref);
             if (data.hasGctxid()) {
-                LOG.debug("{}gctxid {}", getIndent(), data.gctxid);
+                LOG.info("{}gctxid {}", getIndent(), data.gctxid);
             }
         } else if (!data.gosid.equals(ExtendedGUID.nil())) {
             LOG.trace("Non base type == 1 guid {}", data.gosid);
         }
         --indentLevel;
         if (data.gosid.equals(ExtendedGUID.nil())) {
-            LOG.debug("{}End Node {} ({}) - Offset={}, End={}", getIndent(), FndStructureConstants.nameOf(data.id), (int) data.id, offset
+            LOG.info("{}End Node {} ({}) - Offset={}, End={}", getIndent(), FndStructureConstants.nameOf(data.id), (int) data.id, offset
                 , end);
         } else {
-            LOG.debug("{}End Node {} ({}) {}:[{}] - Offset={}, End={}", getIndent(), FndStructureConstants.nameOf(data.id), (int) data.id
+            LOG.info("{}End Node {} ({}) {}:[{}] - Offset={}, End={}", getIndent(), FndStructureConstants.nameOf(data.id), (int) data.id
                 , data.idDesc,
                 data.gosid, offset, end);
         }
@@ -945,9 +945,9 @@ class OneNotePtr {
             if (LOG.isDebugEnabled()) {
                 OneNotePtr content = new OneNotePtr(this);
                 content.reposition(data.ref);
-                LOG.debug("{}Raw:", getIndent());
+                LOG.info("{}Raw:", getIndent());
                 content.dumpHex();
-                LOG.debug("");
+                LOG.info("");
             }
         }
     }
@@ -961,14 +961,14 @@ class OneNotePtr {
             .collect(Collectors.toList());
         for (int i = 0; i < count; ++i) {
             data.rgPridsData.get(i).propertyId = deserializePropertyID();
-            LOG.debug("{}Property {}", getIndent(), data.rgPridsData.get(i).propertyId);
+            LOG.info("{}Property {}", getIndent(), data.rgPridsData.get(i).propertyId);
         }
-        LOG.debug("{}{} elements in property set:", getIndent(), count);
+        LOG.info("{}{} elements in property set:", getIndent(), count);
         for (int i = 0; i < count; ++i) {
             data.rgPridsData.set(i, deserializePropertyValueFromPropertyID(
                 data.rgPridsData.get(i).propertyId, streams, counters));
         }
-        LOG.debug("");
+        LOG.info("");
         return data;
 
     }
@@ -982,7 +982,7 @@ class OneNotePtr {
         long val32 = 0;
         long val64;
         if (LOG.isDebugEnabled()) {
-            LOG.debug("\n{}<{}", getIndent(), propertyID);
+            LOG.info("\n{}<{}", getIndent(), propertyID);
         }
 
         ++indentLevel;
@@ -990,31 +990,31 @@ class OneNotePtr {
             long type = propertyID.type;
             switch ((int) type) {
                 case 0x1:
-                    LOG.debug(" [] ");
+                    LOG.info(" [] ");
                     return data;
                 case 0x2:
-                    LOG.debug(" PropertyID bool({})", propertyID.inlineBool);
+                    LOG.info(" PropertyID bool({})", propertyID.inlineBool);
                     data.scalar = propertyID.inlineBool ? 1 : 0;
                     return data;
                 case 0x3:
                     val8 = deserializeLittleEndianChar();
                     data.scalar = val8;
-                    LOG.debug(" PropertyID byte({})", data.scalar);
+                    LOG.info(" PropertyID byte({})", data.scalar);
                     break;
                 case 0x4:
                     val16 = deserializeLittleEndianShort();
                     data.scalar = val16;
-                    LOG.debug(" uint16 PropertyID short({})", data.scalar);
+                    LOG.info(" uint16 PropertyID short({})", data.scalar);
                     break;
                 case 0x5:
                     val32 = deserializeLittleEndianInt();
                     data.scalar = val32;
-                    LOG.debug(" PropertyID int({})", data.scalar);
+                    LOG.info(" PropertyID int({})", data.scalar);
                     break;
                 case 0x6:
                     val64 = deserializeLittleEndianLong();
                     data.scalar = val64;
-                    LOG.debug(" PropertyID long({})", data.scalar);
+                    LOG.info(" PropertyID long({})", data.scalar);
                     break;
                 case 0x7:
                     // If the value of the PropertyID.type element is "0x7" and the property specifies an array of elements, the value of
@@ -1029,7 +1029,7 @@ class OneNotePtr {
                     // element MUST be: 1 + (4 × TableColumnWidths.cColumns).
 
                     val32 = deserializeLittleEndianInt();
-                    LOG.debug(" raw data: ({})[", val32);
+                    LOG.info(" raw data: ({})[", val32);
                 {
                     data.rawData.stp = offset;
                     data.rawData.cb = 0;
@@ -1046,7 +1046,7 @@ class OneNotePtr {
                         content.dumpHex();
                     }
                 }
-                LOG.debug("]");
+                LOG.info("]");
                 break;
                 case 0x9:
                 case 0xb:
@@ -1078,7 +1078,7 @@ class OneNotePtr {
                         int index = (int) s_count;
                         if (index < stream.size()) {
                             data.compactIDs.add(stream.get(index));
-                            LOG.debug(" {}[{}]", xtype,
+                            LOG.info(" {}[{}]", xtype,
                                 data.compactIDs.get(data.compactIDs.size() - 1));
                         } else {
                             throw new TikaException("SEGV");
@@ -1090,7 +1090,7 @@ class OneNotePtr {
                     val32 = deserializeLittleEndianInt();
                 {
                     OneNotePropertyId propId = deserializePropertyID();
-                    LOG.debug(" UnifiedSubPropertySet {} {}", val32, propId);
+                    LOG.info(" UnifiedSubPropertySet {} {}", val32, propId);
                     data.propertySet.rgPridsData = Stream.generate(PropertyValue::new)
                         .limit((int) val32)
                         .collect(Collectors.toList());
@@ -1104,13 +1104,13 @@ class OneNotePtr {
                 }
                 break;
                 case 0x11:
-                    LOG.debug(" SubPropertySet");
+                    LOG.info(" SubPropertySet");
                     data.propertySet = deserializePropertySet(counters, streams);
                     break;
                 default:
                     throw new TikaException("Invalid type: " + type);
             }
-            LOG.debug(">");
+            LOG.info(">");
             return data;
         } finally {
             --indentLevel;
@@ -1129,13 +1129,13 @@ class OneNotePtr {
         data.contextIDs.extendedStreamsPresent = 0;
         data.contextIDs.osidsStreamNotPresent = 0;
         //uint64_t cur_offset = offset;
-        //LOG.debug("starting deserialization %lx(%lx) / %lx", offset, offset - cur_offset, end);
+        //LOG.info("starting deserialization %lx(%lx) / %lx", offset, offset - cur_offset, end);
         data.oids = deserializeObjectSpaceObjectStreamOfOIDsOSIDsOrContextIDs();
-        //LOG.debug("mid deserialization %lx(%lx) / %lx", offset, offset - cur_offset, end);
+        //LOG.info("mid deserialization %lx(%lx) / %lx", offset, offset - cur_offset, end);
         if (data.oids.osidsStreamNotPresent == 0) {
             data.osids = deserializeObjectSpaceObjectStreamOfOIDsOSIDsOrContextIDs();
         }
-        //LOG.debug("lat deserialization %lx(%lx) / %lx", offset, offset - cur_offset, end);
+        //LOG.info("lat deserialization %lx(%lx) / %lx", offset, offset - cur_offset, end);
         if (data.oids.extendedStreamsPresent != 0) {
             data.contextIDs = deserializeObjectSpaceObjectStreamOfOIDsOSIDsOrContextIDs();
         }
@@ -1150,7 +1150,7 @@ class OneNotePtr {
         data.osidsStreamNotPresent = ((header >> 31) & 0x1);
         data.extendedStreamsPresent = ((header >> 30) & 0x1);
         if (LOG.isDebugEnabled()) {
-            LOG.debug(
+            LOG.info(
                 "{}Deserialized Stream Header count: {} OsidsNotPresent {} Extended {}",
                 getIndent(), data.count,
                 data.osidsStreamNotPresent,
@@ -1173,7 +1173,7 @@ class OneNotePtr {
             throw new TikaMemoryLimitException("Exceeded memory limit when trying to dumpHex - " + (end - offset) + " > " + dif.size());
         }
         ByteBuffer byteBuffer = ByteBuffer.allocate((int) (end - offset));
-        LOG.debug(Hex.encodeHexString(byteBuffer.array()));
+        LOG.info(Hex.encodeHexString(byteBuffer.array()));
     }
 
     public int size() {

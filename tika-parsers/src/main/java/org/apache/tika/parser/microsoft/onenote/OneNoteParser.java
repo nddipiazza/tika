@@ -55,6 +55,8 @@ public class OneNoteParser extends AbstractParser {
     static {
         // All types should be 4 bytes long, space padded as needed
         typesMap.put(MediaType.application("onenote; format=one"), Arrays.asList("ONE "));
+        typesMap.put(MediaType.application("onenote; format=onetoc"), Arrays.asList("ONETOC2 "));
+        typesMap.put(MediaType.application("onenote; format=onetoc2"), Arrays.asList("ONETOC2 "));
         // TODO - add onetoc and other onenote mime types
     }
 
@@ -115,7 +117,7 @@ public class OneNoteParser extends AbstractParser {
                 if (!oneNoteTreeWalker.getOriginalAuthors().isEmpty()) {
                     metadata.set(Property.externalTextBag("originalAuthors"), oneNoteTreeWalker.getOriginalAuthors().toArray(new String[] {}));
                 }
-                if (!Instant.MAX.equals(oneNoteTreeWalker.getCreationTimestamp())) {
+                if (oneNoteTreeWalker.getCreationTimestamp() != Long.MAX_VALUE) {
                     metadata.set("creationTimestamp", String.valueOf(oneNoteTreeWalker.getCreationTimestamp()));
                 }
                 if (!Instant.MIN.equals(oneNoteTreeWalker.getLastModifiedTimestamp())) {

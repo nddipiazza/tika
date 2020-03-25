@@ -206,6 +206,18 @@ public class OneNoteParserTest extends TikaTest {
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document".equals(ml.get("Content-Type"))));
     }
 
+    @Test
+    public void testOneNoteToc() throws Exception {
+        Metadata metadata = new Metadata();
+        String txt = getText("testOneNoteToc.onetoc2", metadata);
+
+        Assert.assertEquals("", txt);
+
+        Assert.assertNull(metadata.get("creationTimestamp"));
+        Assert.assertNull(metadata.get("lastModifiedTimestamp"));
+        Assert.assertNull(metadata.get("lastModified"));
+    }
+
     private void assertNoJunk(String txt) {
         //Should not include font names in the text
         assertNotContained("Calibri", txt);
