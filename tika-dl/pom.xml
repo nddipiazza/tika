@@ -24,7 +24,7 @@
   <parent>
     <groupId>org.apache.tika</groupId>
     <artifactId>tika-parent</artifactId>
-    <version>1.23-lucidworks5</version>
+    <version>1.23-lucidworks6</version>
     <relativePath>../tika-parent/pom.xml</relativePath>
   </parent>
 
