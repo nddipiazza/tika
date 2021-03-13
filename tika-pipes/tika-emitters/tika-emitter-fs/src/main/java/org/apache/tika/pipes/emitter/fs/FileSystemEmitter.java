@@ -17,27 +17,19 @@
 package org.apache.tika.pipes.emitter.fs;
 
 import org.apache.tika.config.Field;
-import org.apache.tika.pipes.emitter.AbstractEmitter;
-import org.apache.tika.pipes.emitter.Emitter;
-import org.apache.tika.pipes.emitter.StreamEmitter;
-import org.apache.tika.pipes.emitter.TikaEmitterException;
-import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.metadata.serialization.JsonMetadataList;
+import org.apache.tika.pipes.emitter.AbstractEmitter;
+import org.apache.tika.pipes.emitter.StreamEmitter;
+import org.apache.tika.pipes.emitter.TikaEmitterException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.Collections;
+import java.nio.file.*;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Emitter to write to a file system.
@@ -48,7 +40,7 @@ import java.util.Set;
  * <pre class="prettyprint">
  *  &lt;properties&gt;
  *      &lt;emitters&gt;
- *          &lt;emitter class="org.apache.tika.pipes.emitter.fs.FileSystemEmitter&gt;
+ *          &lt;emitter class="org.apache.tika.pipes.emitter.fs.FileSystemEmitter"&gt;
  *              &lt;params&gt;
  *                  &lt;!-- required --&gt;
  *                  &lt;param name="name" type="string"&gt;fs&lt;/param&gt;
