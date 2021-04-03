@@ -26,6 +26,8 @@
                 <param name="solrUrls" type="list">
                     <string>{SOLR_URL}</string>
                 </param>
+                <param name="attachmentStrategy" type="string">{ATTACHMENT_STRATEGY}</param>
+                <param name="updateStrategy" type="string">{UPDATE_STRATEGY}</param>
                 <param name="idField" type="string">id</param>
                 <param name="parsingIdField" type="string">parsing_id_i</param>
                 <param name="failCountField" type="string">fail_count_i</param>

@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,11 +53,16 @@ public class SolrEmitter extends AbstractEmitter implements Initializable {
         //anything else?
     }
 
+    enum UpdateStrategy {
+        UPDATE,
+        UPDATE_MUST_EXIST,
+        UPDATE_MUST_NOT_EXIST,
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(SolrEmitter.class);
-    //one day this will be allowed or can be configured?
-    private final boolean gzipJson = false;
 
     private AttachmentStrategy attachmentStrategy = AttachmentStrategy.PARENT_CHILD;
+    private UpdateStrategy updateStrategy = UpdateStrategy.UPDATE;
     private String solrCollection;
     /**
      * You can specify solrUrls, or you can specify solrZkHosts and use use zookeeper to determine the solr server urls.
@@ -91,6 +97,11 @@ public class SolrEmitter extends AbstractEmitter implements Initializable {
     private void addMetadataAsSolrInputDocuments(String emitKey, List<Metadata> metadataList, List<SolrInputDocument> docsToUpdate) throws IOException, TikaEmitterException {
         SolrInputDocument solrInputDocument = new SolrInputDocument();
         solrInputDocument.setField(idField, emitKey);
+        if (updateStrategy == UpdateStrategy.UPDATE_MUST_EXIST) {
+            solrInputDocument.setField("_version_", 1);
+        } else if (updateStrategy == UpdateStrategy.UPDATE_MUST_NOT_EXIST) {
+            solrInputDocument.setField("_version_", -1);
+        }
         if (attachmentStrategy == AttachmentStrategy.SKIP ||
                 metadataList.size() == 1) {
             addMetadataToSolrInputDocument(metadataList.get(0), solrInputDocument);
@@ -141,50 +152,48 @@ public class SolrEmitter extends AbstractEmitter implements Initializable {
         }
         if (!docsToUpdate.isEmpty()) {
             try {
-                solrClient.add(solrCollection, docsToUpdate);
+                solrClient.add(solrCollection, docsToUpdate, commitWithin);
             } catch (SolrServerException e) {
                 throw new TikaEmitterException("Could not add batch to solr", e);
             }
         }
     }
 
-    private void addMetadataToSolrInputDocument(Metadata metadata, SolrInputDocument solrInputDocument) throws IOException {
+    private void addMetadataToSolrInputDocument(Metadata metadata, SolrInputDocument solrInputDocument) {
         for (String n : metadata.names()) {
             String[] vals = metadata.getValues(n);
             if (vals.length == 0) {
                 continue;
             } else if (vals.length == 1) {
-                solrInputDocument.setField(n, vals[0]);
+                solrInputDocument.setField(n, new HashMap<String, String>() {{
+                    put("set", vals[0]);
+                }});
             } else if (vals.length > 1) {
-                solrInputDocument.setField(n, vals);
+                solrInputDocument.setField(n, new HashMap<String, String[]>() {{
+                    put("set", vals);
+                }});
             }
         }
     }
 
     /**
-     * Options: "skip", "concatenate-content", "parent-child". Default is "parent-child".
-     * If set to "skip", this will index only the main file and ignore all info
-     * in the attachments.  If set to "concatenate", this will concatenate the
+     * Options: SKIP, CONCATENATE_CONTENT, PARENT_CHILD. Default is "PARENT_CHILD".
+     * If set to "SKIP", this will index only the main file and ignore all info
+     * in the attachments.  If set to "CONCATENATE_CONTENT", this will concatenate the
      * content extracted from the attachments into the main document and
      * then index the main document with the concatenated content _and_ the
      * main document's metadata (metadata from attachments will be thrown away).
-     * If set to "parent-child", this will index the attachments as children
+     * If set to "PARENT_CHILD", this will index the attachments as children
      * of the parent document via Solr's parent-child relationship.
-     *
-     * @param attachmentStrategy
      */
     @Field
     public void setAttachmentStrategy(String attachmentStrategy) {
-        if (attachmentStrategy.equals("skip")) {
-            this.attachmentStrategy = AttachmentStrategy.SKIP;
-        } else if (attachmentStrategy.equals("concatenate-content")) {
-            this.attachmentStrategy = AttachmentStrategy.CONCATENATE_CONTENT;
-        } else if (attachmentStrategy.equals("parent-child")) {
-            this.attachmentStrategy = AttachmentStrategy.PARENT_CHILD;
-        } else {
-            throw new IllegalArgumentException("Expected 'skip', 'concatenate-content' or " +
-                    "'parent-child'. I regret I do not recognize: " + attachmentStrategy);
-        }
+        this.attachmentStrategy = AttachmentStrategy.valueOf(attachmentStrategy);
+    }
+
+    @Field
+    public void setUpdateStrategy(String updateStrategy) {
+        this.updateStrategy = UpdateStrategy.valueOf(updateStrategy);
     }
 
     @Field
