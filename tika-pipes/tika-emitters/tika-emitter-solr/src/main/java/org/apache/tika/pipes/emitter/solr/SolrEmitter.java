@@ -20,6 +20,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
+import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.tika.client.HttpClientFactory;
 import org.apache.tika.config.Field;
@@ -152,7 +153,11 @@ public class SolrEmitter extends AbstractEmitter implements Initializable {
         }
         if (!docsToUpdate.isEmpty()) {
             try {
-                solrClient.add(solrCollection, docsToUpdate, commitWithin);
+                UpdateRequest req = new UpdateRequest();
+                req.add(docsToUpdate);
+                req.setCommitWithin(commitWithin);
+                req.setParam("failOnVersionConflicts", "false");
+                req.process(solrClient, solrCollection);
             } catch (SolrServerException e) {
                 throw new TikaEmitterException("Could not add batch to solr", e);
             }
